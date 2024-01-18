@@ -24,7 +24,8 @@ createApp({
       })
       //失敗的結果
       .catch((error) => {
-        console.dir(error.response); //dir可以協助看error的資訊/response>data>error
+        console.dir(error); //dir可以協助看error的資訊/response>data>error
+        alert(error.data.message) // .catch 的部分可以使用 alert 或 其它彈跳視窗 告知使用者發生錯誤，內容可顯示 err.response.data.message 的訊息，或是自己寫也可以
       })
     }
   }
