@@ -24,31 +24,51 @@ var productModal,delProductModal;
 const app = createApp({
   data(){
     return{
-      products:[
-        {
-          id: "-L9tH8jxVb2Ka_DYPwng",
-          title: "草莓莓果夾心圈",
-          category:"甜甜圈",
-          unit: "個",
-          origin_price: 150,
-          price: 99,
-          description: "濃郁的草莓風味，中心填入滑順不膩口的卡士達內餡，帶來滿滿幸福感！",//產品描述
-          content: "尺寸：14x14cm",//說明內容
-          is_enabled: 1,
-          imageUrl: "https://images.unsplash.com/photo-1583182332473-b31ba08929c8?ixid=MnwxMjA3fDB8MHxzZWFyY2h8NzR8fGRvbnV0fGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=700&q=60",
-        }
-      ],
-      temp: {},
-      picUrl:""
+      apiUrl:'https://vue3-course-api.hexschool.io/v2',
+      apiPath:'sabrina-api',
+      products:[],
+      temp: {
+        imagesUrl:[]
+      },
+      picUrl:"",
+      isNew:true,
     }
   },
   methods:{
+    //確認是否登入
+    checkAdmin(){
+      const url = `${this.apiUrl}/api/user/check`;
+      axios.post(url)
+        .then(()=>{
+          this.getData();//成功登入取值
+        })
+        .catch((err)=>{ //使用者若無登入直接進入商品頁面，會被導回登入頁面
+          console.dir(err,'error check');
+          window.location = './login.html';
+        })
+    },
+    //串接自己的 API 產品列表內容
+    getData(){
+      const url = `${this.apiUrl}/api/${this.apiPath}/admin/products`;
+      axios.get(url)
+        .then((res) => {
+          console.log(res.data.products);
+          this.products = res.data.products;
+        })
+        .catch((err)=>{
+          console.dir(err,"error getData");
+          alert(err.response.data.message)
+        })
+    },
     showEditModel(item){
       console.log("click model",item);
       if(item){
         this.temp = item;
+        this.isNew = false
+      }else{
+        this.isNew = true
       }
-      console.log("click model",this.temp);
+      console.log("click model",this.temp,this.isNew);
       productModal.show()
     },
     showDeleteModel(item){
@@ -88,21 +108,24 @@ const app = createApp({
     },
     addPicData(item){
       console.log('addPicData',item.imageUrl);
-      this.temp.imageUrl = item.imageUrl
+      this.temp.imageUrl = []
+      this.temp.imageUrl.push('')
     },
     deletePicData(item){
       console.log('deletePicData',item);
       this.temp.imageUrl = ''
     },
   },
-  watch:{
-    picUrl(current){
-      
-    }
-  },
   mounted() {
     productModal = new bootstrap.Modal(document.getElementById('productModal'))
     delProductModal = new bootstrap.Modal(document.getElementById('delProductModal'))
+
+    // 取出 Token ，如果沒有 token 則會出現 401 (unauthorized) 的錯誤
+    const token = document.cookie.replace(/(?:(?:^|.*;\s*)sabrinaToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
+    axios.defaults.headers.common.Authorization = token;
+
+    //確認是否登入，使用者若無登入直接進入商品頁面，會被導回登入頁面
+    this.checkAdmin()
   },
 })
 
